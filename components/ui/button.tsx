@@ -16,6 +16,7 @@ export function Button({
   isLoading = false,
   className,
   disabled,
+  onClick,
   ...props
 }: ButtonProps) {
   return (
@@ -23,6 +24,7 @@ export function Button({
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       disabled={disabled || isLoading}
+      onClick={onClick}
       className={cn(
         "rounded-xl font-medium transition-all duration-200",
         "disabled:opacity-50 disabled:cursor-not-allowed",
@@ -34,7 +36,7 @@ export function Button({
         size === "lg" && "px-6 py-3 text-lg",
         className
       )}
-      {...props}
+      {...props as any}
     >
       {isLoading ? (
         <span className="flex items-center gap-2">
