@@ -1,8 +1,8 @@
 export type Agent = {
   id: string
   name: string
-  status: 'active' | 'idle' | 'error'
   model: string
+  status: "active" | "idle" | "error"
   created_at: string
   updated_at: string
 }
@@ -12,16 +12,17 @@ export type Session = {
   agent_id: string
   start_time: string
   end_time: string | null
-  status: 'active' | 'completed' | 'error'
+  status: "active" | "completed" | "error"
   created_at: string
 }
 
 export type Message = {
   id: string
   session_id: string
-  role: 'user' | 'assistant'
+  role: "user" | "assistant" | "system"
   content: string
   timestamp: string
+  created_at: string
 }
 
 export type Metric = {
@@ -31,6 +32,6 @@ export type Metric = {
   tokens_output: number
   tokens_total: number
   cost: number
-  duration_ms: number | null
+  duration_ms: number
   created_at: string
 }

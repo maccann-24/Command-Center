@@ -1,32 +1,32 @@
 "use client"
 
-import { Card } from "@/components/ui/card"
-import { Avatar } from "@/components/ui/avatar"
-import { Search } from "lucide-react"
+import { usePathname } from "next/navigation"
+
+function getPageTitle(pathname: string): string {
+  if (pathname === "/") return "Dashboard"
+  if (pathname.startsWith("/agents") && pathname.includes("/settings")) return "Agent Settings"
+  if (pathname.startsWith("/agents") && pathname !== "/agents") return "Agent Details"
+  if (pathname === "/agents") return "Agents"
+  if (pathname.startsWith("/sessions") && pathname !== "/sessions") return "Session Details"
+  if (pathname === "/sessions") return "Sessions"
+  if (pathname === "/analytics") return "Analytics"
+  return "Mission Control"
+}
 
 export function Header() {
-  return (
-    <header className="fixed top-0 right-0 left-60 h-16 z-10">
-      <Card animate={false} className="h-full mx-4 mt-4 px-6 flex items-center justify-between">
-        {/* Search Bar */}
-        <div className="flex items-center gap-3 flex-1 max-w-md">
-          <Search className="w-5 h-5 text-white/50" />
-          <input
-            type="text"
-            placeholder="Search agents, sessions..."
-            className="bg-transparent text-white placeholder:text-white/40 outline-none w-full"
-          />
-        </div>
+  const pathname = usePathname()
+  const title = getPageTitle(pathname)
 
-        {/* User Profile */}
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <div className="text-sm font-medium text-white">Matthew Cannon</div>
-            <div className="text-xs text-white/50">Admin</div>
-          </div>
-          <Avatar name="Matthew Cannon" size="md" status="online" />
+  return (
+    <header className="fixed top-0 right-0 left-60 h-16 z-10 bg-white/5 backdrop-blur-xl border-b border-white/10 flex items-center px-8">
+      <div className="flex items-center gap-3">
+        <h2 className="text-white/80 font-semibold">{title}</h2>
+      </div>
+      <div className="ml-auto flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-brand-primary/30 border border-brand-primary/50 flex items-center justify-center">
+          <span className="text-white text-xs font-bold">MC</span>
         </div>
-      </Card>
+      </div>
     </header>
   )
 }
