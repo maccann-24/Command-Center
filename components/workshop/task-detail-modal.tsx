@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/toast"
-import { X, Edit2, Save, Trash2, AlertTriangle } from "lucide-react"
+import { X, Edit2, Save, Trash2, AlertTriangle, Play, CheckCircle } from "lucide-react"
 import { Task, TaskPriority, TaskStatus } from "@/types/database"
 
 interface TaskDetailModalProps {
@@ -23,12 +23,6 @@ function getMomentumVariant(score: number): "success" | "warning" | "error" {
   return "error"
 }
 
-const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: "queued", label: "Queued" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "done", label: "Done" },
-]
-
 export function TaskDetailModal({
   task,
   isOpen,
@@ -42,6 +36,8 @@ export function TaskDetailModal({
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [starting, setStarting] = useState(false)
+  const [completing, setCompleting] = useState(false)
   const { showToast } = useToast()
 
   // Sync local state when task changes
@@ -101,6 +97,54 @@ export function TaskDetailModal({
     }
   }
 
+  async function handleStartTask() {
+    if (!task) return
+    setStarting(true)
+    try {
+      const res = await fetch("/api/tasks/assign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskId: task.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        showToast(data.error ?? "Failed to start task", "error")
+      } else {
+        showToast("Task started! Clawdbot is on it.", "success")
+        onUpdated()
+        handleClose()
+      }
+    } catch {
+      showToast("Network error", "error")
+    } finally {
+      setStarting(false)
+    }
+  }
+
+  async function handleComplete() {
+    if (!task) return
+    setCompleting(true)
+    try {
+      const res = await fetch("/api/tasks/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskId: task.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        showToast(data.error ?? "Failed to complete task", "error")
+      } else {
+        showToast("Task marked complete!", "success")
+        onUpdated()
+        handleClose()
+      }
+    } catch {
+      showToast("Network error", "error")
+    } finally {
+      setCompleting(false)
+    }
+  }
+
   function handleClose() {
     setEditing(false)
     setConfirmDelete(false)
@@ -154,7 +198,15 @@ export function TaskDetailModal({
                                focus:border-brand-primary/60 transition-colors"
                   />
                 ) : (
-                  <h2 className="text-xl font-bold text-white leading-snug">{task.title}</h2>
+                  <div className="flex items-center gap-2">
+                    {task.status === "in_progress" && (
+                      <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-400" />
+                      </span>
+                    )}
+                    <h2 className="text-xl font-bold text-white leading-snug">{task.title}</h2>
+                  </div>
                 )}
                 <p className="text-white/40 text-xs mt-1">Created {createdAt}</p>
               </div>
@@ -262,29 +314,57 @@ export function TaskDetailModal({
                 </Button>
               </div>
             ) : (
-              <div className="flex gap-3">
-                <Button
-                  variant="ghost"
-                  onClick={handleDelete}
-                  isLoading={deleting}
-                  className={`border transition-all ${
-                    confirmDelete
-                      ? "border-red-500/50 text-red-400 hover:bg-red-500/10"
-                      : "border-white/10 text-white/50 hover:text-red-400 hover:border-red-500/30"
-                  }`}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  {confirmDelete ? "Confirm delete" : "Delete"}
-                </Button>
-                {confirmDelete && (
+              <div className="space-y-3">
+                {/* Task execution buttons */}
+                {task.status === "queued" && (
                   <Button
-                    variant="ghost"
-                    onClick={() => setConfirmDelete(false)}
-                    className="text-white/50"
+                    variant="primary"
+                    onClick={handleStartTask}
+                    isLoading={starting}
+                    className="w-full bg-green-600 hover:bg-green-500 shadow-green-500/20"
                   >
-                    Cancel
+                    <Play className="w-4 h-4 mr-2" />
+                    ▶ Start Task
                   </Button>
                 )}
+
+                {task.status === "in_progress" && (
+                  <Button
+                    variant="primary"
+                    onClick={handleComplete}
+                    isLoading={completing}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    ✓ Mark Complete
+                  </Button>
+                )}
+
+                {/* Delete */}
+                <div className="flex gap-3">
+                  <Button
+                    variant="ghost"
+                    onClick={handleDelete}
+                    isLoading={deleting}
+                    className={`border transition-all ${
+                      confirmDelete
+                        ? "border-red-500/50 text-red-400 hover:bg-red-500/10"
+                        : "border-white/10 text-white/50 hover:text-red-400 hover:border-red-500/30"
+                    }`}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {confirmDelete ? "Confirm delete" : "Delete"}
+                  </Button>
+                  {confirmDelete && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => setConfirmDelete(false)}
+                      className="text-white/50"
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
 

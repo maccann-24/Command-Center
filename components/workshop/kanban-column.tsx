@@ -10,8 +10,10 @@ interface KanbanColumnProps {
   status: TaskStatus
   tasks: Task[]
   statusColor: string
+  topMomentumId?: string | null
   onAddTask?: () => void
   onTaskClick: (task: Task) => void
+  onTaskUpdated?: () => void
 }
 
 const emptyStateMessages: Record<TaskStatus, string> = {
@@ -25,8 +27,10 @@ export function KanbanColumn({
   status,
   tasks,
   statusColor,
+  topMomentumId,
   onAddTask,
   onTaskClick,
+  onTaskUpdated,
 }: KanbanColumnProps) {
   return (
     <div className="flex flex-col min-h-0 flex-1">
@@ -61,7 +65,13 @@ export function KanbanColumn({
           </div>
         ) : (
           tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onClick={onTaskClick} />
+            <TaskCard
+              key={task.id}
+              task={task}
+              onClick={onTaskClick}
+              onUpdated={onTaskUpdated}
+              isTopMomentum={task.id === topMomentumId}
+            />
           ))
         )}
       </div>

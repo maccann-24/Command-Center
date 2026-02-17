@@ -6,7 +6,8 @@ import { Task, TaskStatus } from "@/types/database"
 import { KanbanColumn } from "@/components/workshop/kanban-column"
 import { AddTaskModal } from "@/components/workshop/add-task-modal"
 import { TaskDetailModal } from "@/components/workshop/task-detail-modal"
-import { Layers, AlertCircle } from "lucide-react"
+import { Layers, AlertCircle, RefreshCw } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 const COLUMNS: { status: TaskStatus; title: string; color: string }[] = [
   { status: "queued", title: "Queued", color: "bg-blue-400" },
@@ -20,6 +21,18 @@ export default function WorkshopPage() {
   const [tableError, setTableError] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [recalculating, setRecalculating] = useState(false)
+
+  const recalculateMomentum = useCallback(async () => {
+    setRecalculating(true)
+    try {
+      await fetch("/api/tasks/calculate-momentum", { method: "POST" })
+    } catch {
+      // non-fatal
+    } finally {
+      setRecalculating(false)
+    }
+  }, [])
 
   const fetchTasks = useCallback(async () => {
     const { data, error } = await supabase
@@ -28,7 +41,6 @@ export default function WorkshopPage() {
       .order("created_at", { ascending: false })
 
     if (error) {
-      // Table might not exist yet
       if (
         error.code === "42P01" ||
         error.message?.includes("does not exist") ||
@@ -44,24 +56,60 @@ export default function WorkshopPage() {
     setLoading(false)
   }, [])
 
+  // On first load: recalculate momentum then fetch
   useEffect(() => {
-    fetchTasks()
-  }, [fetchTasks])
+    recalculateMomentum().then(fetchTasks)
+  }, [recalculateMomentum, fetchTasks])
 
-  const tasksByStatus = (status: TaskStatus) =>
-    tasks.filter((t) => t.status === status)
+  async function handleRecalculate() {
+    setRecalculating(true)
+    try {
+      await fetch("/api/tasks/calculate-momentum", { method: "POST" })
+      await fetchTasks()
+    } catch {
+      // non-fatal
+    } finally {
+      setRecalculating(false)
+    }
+  }
+
+  // Sort queued by momentum_score descending; others stay as-is
+  function tasksByStatus(status: TaskStatus): Task[] {
+    const filtered = tasks.filter((t) => t.status === status)
+    if (status === "queued") {
+      return [...filtered].sort((a, b) => b.momentum_score - a.momentum_score)
+    }
+    return filtered
+  }
+
+  // The top-momentum queued task gets the persistent Start button
+  const topMomentumId = tasksByStatus("queued")[0]?.id ?? null
 
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-xl bg-white/5 border border-white/10">
-          <Layers className="w-6 h-6 text-white/70" />
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+            <Layers className="w-6 h-6 text-white/70" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-white">Workshop</h1>
+            <p className="text-white/50 text-sm mt-0.5">Kanban task board</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold text-white">Workshop</h1>
-          <p className="text-white/50 text-sm mt-0.5">Kanban task board</p>
-        </div>
+
+        {/* Recalculate momentum button */}
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleRecalculate}
+          disabled={recalculating || loading}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className={`w-4 h-4 ${recalculating ? "animate-spin" : ""}`} />
+          {recalculating ? "Recalculating…" : "Recalculate Momentum"}
+        </Button>
       </div>
 
       {/* Error / empty state when table doesn't exist */}
@@ -102,8 +150,10 @@ export default function WorkshopPage() {
               status={col.status}
               tasks={tasksByStatus(col.status)}
               statusColor={col.color}
+              topMomentumId={col.status === "queued" ? topMomentumId : null}
               onAddTask={col.status === "queued" ? () => setShowAddModal(true) : undefined}
               onTaskClick={(task) => setSelectedTask(task)}
+              onTaskUpdated={fetchTasks}
             />
           ))}
         </div>
