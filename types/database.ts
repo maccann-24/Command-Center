@@ -35,3 +35,17 @@ export type Metric = {
   duration_ms: number
   created_at: string
 }
+
+export type TaskStatus = "queued" | "in_progress" | "done"
+export type TaskPriority = "low" | "medium" | "high"
+
+export type Task = {
+  id: string
+  title: string
+  description: string
+  status: TaskStatus
+  momentum_score: number
+  priority: TaskPriority
+  created_at: string
+  updated_at: string
+}
