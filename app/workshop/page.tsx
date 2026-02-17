@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { supabase } from "@/lib/supabase"
 import { Task, TaskStatus } from "@/types/database"
 import { KanbanColumn } from "@/components/workshop/kanban-column"
@@ -22,6 +22,8 @@ export default function WorkshopPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [recalculating, setRecalculating] = useState(false)
+  const [liveFlash, setLiveFlash] = useState(false)
+  const liveFlashTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const recalculateMomentum = useCallback(async () => {
     setRecalculating(true)
@@ -32,6 +34,12 @@ export default function WorkshopPage() {
     } finally {
       setRecalculating(false)
     }
+  }, [])
+
+  const flashLive = useCallback(() => {
+    setLiveFlash(true)
+    if (liveFlashTimeout.current) clearTimeout(liveFlashTimeout.current)
+    liveFlashTimeout.current = setTimeout(() => setLiveFlash(false), 1500)
   }, [])
 
   const fetchTasks = useCallback(async () => {
@@ -60,6 +68,32 @@ export default function WorkshopPage() {
   useEffect(() => {
     recalculateMomentum().then(fetchTasks)
   }, [recalculateMomentum, fetchTasks])
+
+  // Realtime subscription for tasks table
+  useEffect(() => {
+    const channel = supabase
+      .channel("workshop-tasks-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tasks" },
+        () => {
+          flashLive()
+          fetchTasks()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchTasks, flashLive])
+
+  // Cleanup flash timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (liveFlashTimeout.current) clearTimeout(liveFlashTimeout.current)
+    }
+  }, [])
 
   async function handleRecalculate() {
     setRecalculating(true)
@@ -99,17 +133,37 @@ export default function WorkshopPage() {
           </div>
         </div>
 
-        {/* Recalculate momentum button */}
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleRecalculate}
-          disabled={recalculating || loading}
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className={`w-4 h-4 ${recalculating ? "animate-spin" : ""}`} />
-          {recalculating ? "Recalculating…" : "Recalculate Momentum"}
-        </Button>
+        <div className="flex items-center gap-3">
+          {/* LIVE indicator */}
+          <div className="flex items-center gap-1.5 px-2 py-1">
+            <span
+              className={`text-xs font-mono transition-colors duration-300 ${
+                liveFlash ? "text-[#00d084]" : "text-[#64748b]"
+              }`}
+            >
+              ●
+            </span>
+            <span
+              className={`text-xs font-mono transition-colors duration-300 ${
+                liveFlash ? "text-[#00d084]" : "text-[#64748b]"
+              }`}
+            >
+              LIVE
+            </span>
+          </div>
+
+          {/* Recalculate momentum button */}
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleRecalculate}
+            disabled={recalculating || loading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${recalculating ? "animate-spin" : ""}`} />
+            {recalculating ? "Recalculating…" : "Recalculate Momentum"}
+          </Button>
+        </div>
       </div>
 
       {/* Error / empty state when table doesn't exist */}

@@ -13,6 +13,9 @@ export type Session = {
   start_time: string
   end_time: string | null
   status: "active" | "completed" | "error"
+  last_heartbeat: string | null
+  current_task: string | null
+  bandwidth_pct: number | null
   created_at: string
 }
 
