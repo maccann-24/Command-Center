@@ -21,10 +21,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ToastProvider>
-          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+          <div className="min-h-screen bg-[#080c14]">
             <Sidebar />
             <Header />
-            <main className="ml-60 pt-24 p-8">
+            <main className="ml-[220px] pt-14 p-6">
               {children}
             </main>
           </div>
