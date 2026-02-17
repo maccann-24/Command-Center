@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { SessionRowSkeleton } from "@/components/ui/skeleton"
 import { Clock, MessageSquare, DollarSign, Search } from "lucide-react"
 import Link from "next/link"
 
@@ -65,19 +66,13 @@ export default function SessionsPage() {
     return matchSearch && matchStatus
   })
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-white text-lg">Loading sessions...</div>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white">Sessions</h1>
-        <p className="text-white/60 mt-1">{filtered.length} of {sessions.length} sessions</p>
+        <p className="text-white/60 mt-1">
+          {loading ? "Loading..." : `${filtered.length} of ${sessions.length} sessions`}
+        </p>
       </div>
 
       <Card className="p-4">
@@ -106,7 +101,9 @@ export default function SessionsPage() {
       </Card>
 
       <div className="space-y-3">
-        {filtered.length === 0 ? (
+        {loading ? (
+          [1, 2, 3, 4, 5].map(i => <SessionRowSkeleton key={i} />)
+        ) : filtered.length === 0 ? (
           <Card className="p-12 text-center">
             <p className="text-white/60">No sessions found</p>
           </Card>

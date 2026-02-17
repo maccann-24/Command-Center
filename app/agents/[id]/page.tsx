@@ -137,7 +137,7 @@ export default function AgentDetailPage() {
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="text-white text-sm font-medium">
+                        <p className="text-white text-sm font-medium font-mono">
                           {session.id.slice(0, 8)}...
                         </p>
                         <Badge variant={session.status === "active" ? "success" : "info"}>

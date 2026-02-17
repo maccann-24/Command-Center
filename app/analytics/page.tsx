@@ -49,16 +49,14 @@ export default function AnalyticsPage() {
 
       // Count sessions per day
       ;(sessions || []).forEach(session => {
-        const sessionDate = new Date(session.start_time)
-        const label = sessionDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+        const label = new Date(session.start_time).toLocaleDateString("en-US", { month: "short", day: "numeric" })
         const dayEntry = last7Days.find(d => d.date === label)
         if (dayEntry) dayEntry.sessions += 1
       })
 
       // Add cost & tokens per day from metrics
       ;(metrics || []).forEach(metric => {
-        const metricDate = new Date(metric.created_at)
-        const label = metricDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+        const label = new Date(metric.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
         const dayEntry = last7Days.find(d => d.date === label)
         if (dayEntry) {
           dayEntry.cost += Number(metric.cost)
@@ -66,10 +64,10 @@ export default function AnalyticsPage() {
         }
       })
 
-      // Round cost to 4 decimal places and convert tokens to k
+      // Round values
       last7Days.forEach(d => {
         d.cost = Math.round(d.cost * 10000) / 10000
-        d.tokens = Math.round(d.tokens / 1000)
+        d.tokens = Math.round(d.tokens / 1000) // convert to k
       })
 
       // Build per-agent data

@@ -38,12 +38,14 @@ export default function DashboardPage() {
         totalMessages: messages?.length || 0,
         totalCost,
       })
+
       setAgents(agentsData || [])
 
       const sessionsWithAgents = (sessions || []).slice(0, 5).map(session => ({
         ...session,
         agent_name: (agentsData || []).find(a => a.id === session.agent_id)?.name || "Unknown",
       }))
+
       setRecentSessions(sessionsWithAgents)
       setLoading(false)
     }
@@ -120,9 +122,9 @@ export default function DashboardPage() {
       {!loading && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Agents</h2>
+            <h2 className="text-xl font-semibold text-white mb-4">Active Agents</h2>
             <div className="space-y-3">
-              {agents.slice(0, 4).map(agent => (
+              {agents.slice(0, 3).map(agent => (
                 <div key={agent.id} className="flex items-center gap-3">
                   <Avatar name={agent.name} size="md" status={agent.status === "active" ? "online" : "offline"} />
                   <div className="flex-1 min-w-0">
@@ -144,7 +146,7 @@ export default function DashboardPage() {
           </Card>
 
           <Card className="p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Recent Sessions</h2>
+            <h2 className="text-xl font-semibold text-white mb-4">Recent Activity</h2>
             <div className="space-y-3">
               {recentSessions.map(session => (
                 <div key={session.id} className="flex items-start gap-3">
@@ -153,8 +155,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white text-sm">
-                      <span className="font-medium">{session.agent_name}</span>
-                      {" "}started a session
+                      <span className="font-medium">{session.agent_name}</span> started a session
                     </p>
                     <p className="text-white/40 text-xs mt-0.5">
                       {new Date(session.start_time).toLocaleString()}

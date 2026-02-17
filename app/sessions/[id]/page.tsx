@@ -38,7 +38,7 @@ export default function SessionDetailPage() {
         .eq("session_id", sessionId)
         .order("timestamp", { ascending: true })
 
-      // Sum all metric rows for this session (there may be multiple)
+      // Sum all metric rows for this session (may be multiple)
       const { data: metricsData } = await supabase
         .from("metrics")
         .select("tokens_total, cost")
