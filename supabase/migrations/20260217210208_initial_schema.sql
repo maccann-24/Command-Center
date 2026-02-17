@@ -104,10 +104,4 @@ create policy "anon write messages" on messages for all using (true);
 create policy "anon read metrics" on metrics for select using (true);
 create policy "anon write metrics" on metrics for all using (true);
 
--- ============================================
--- SEED DATA
--- ============================================
-
-insert into agents (name, model, status, personality)
-select 'YurtSauce', 'anthropic/claude-sonnet-4-5', 'active', 'Resourceful, direct, scrappy'
-where not exists (select 1 from agents where name = 'YurtSauce');
+-- No seed data: all data must be real
