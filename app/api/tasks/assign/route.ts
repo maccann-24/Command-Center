@@ -5,7 +5,7 @@ import path from "path"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
 const PENDING_TASK_PATH = "/home/ubuntu/clawd/pending-task.json"
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
       .from("task_history")
       .insert({
         task_id: taskId,
-        action: "status_change",
+        action: "status_changed",
         changed_by: "clawdbot",
         changes: {
           from: "queued",
