@@ -246,7 +246,7 @@ export default function IdeasPage() {
           <Button
             onClick={fetchIdeas}
             size="sm"
-            variant="outline"
+            variant="ghost"
             className="ml-auto border-red-500/30 text-red-400 hover:bg-red-500/10"
           >
             Retry
