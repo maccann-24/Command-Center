@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Shield, TrendingUp, Wallet } from "lucide-react";
+import { Activity, Shield, TrendingUp, Wallet, Layers, ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 type PortfolioRow = {
   id: number;
@@ -14,6 +14,25 @@ type PortfolioRow = {
   daily_pnl: number;
   all_time_pnl: number;
   updated_at: string | null;
+};
+
+type PositionRow = {
+  id: string;
+  market_id: string;
+  thesis_id: string | null;
+  side: "YES" | "NO" | string;
+  shares: number;
+  entry_price: number;
+  current_price: number;
+  pnl: number;
+  status: "open" | "closed" | "stopped_out" | string;
+  opened_at: string | null;
+  closed_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  markets?: {
+    question?: string | null;
+  } | null;
 };
 
 function formatUsd(n: number) {
@@ -45,7 +64,10 @@ function relativeTime(iso: string | null) {
 export default function PortfolioPage() {
   const [loading, setLoading] = useState(true);
   const [portfolio, setPortfolio] = useState<PortfolioRow | null>(null);
+  const [positionsLoading, setPositionsLoading] = useState(true);
+  const [openPositions, setOpenPositions] = useState<PositionRow[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [positionsError, setPositionsError] = useState<string | null>(null);
   const [liveFlash, setLiveFlash] = useState(false);
   const liveFlashTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -73,9 +95,30 @@ export default function PortfolioPage() {
     setLoading(false);
   }, []);
 
+  const fetchOpenPositions = useCallback(async () => {
+    setPositionsError(null);
+    const { data, error: qErr } = await supabase
+      .from("positions")
+      // If the FK relationship exists in PostgREST, this will hydrate market question.
+      .select("*, markets(question)")
+      .eq("status", "open")
+      .order("opened_at", { ascending: false })
+      .limit(25);
+
+    if (qErr) {
+      setOpenPositions([]);
+      setPositionsError(qErr.message);
+    } else {
+      setOpenPositions((data as PositionRow[]) ?? []);
+    }
+
+    setPositionsLoading(false);
+  }, []);
+
   useEffect(() => {
     fetchPortfolio();
-  }, [fetchPortfolio]);
+    fetchOpenPositions();
+  }, [fetchPortfolio, fetchOpenPositions]);
 
   useEffect(() => {
     const channel = supabase
@@ -88,13 +131,21 @@ export default function PortfolioPage() {
           fetchPortfolio();
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "positions" },
+        () => {
+          flashLive();
+          fetchOpenPositions();
+        }
+      )
       .subscribe();
 
     return () => {
       if (liveFlashTimeout.current) clearTimeout(liveFlashTimeout.current);
       supabase.removeChannel(channel);
     };
-  }, [fetchPortfolio, flashLive]);
+  }, [fetchPortfolio, fetchOpenPositions, flashLive]);
 
   const derived = useMemo(() => {
     if (!portfolio) return null;
@@ -103,12 +154,27 @@ export default function PortfolioPage() {
     const allTime = portfolio.all_time_pnl ?? 0;
     const deployed = portfolio.deployed_pct ?? 0;
 
+    const openCount = openPositions.length;
+    const exposureCost = openPositions.reduce(
+      (acc, p) => acc + (p.entry_price ?? 0) * (p.shares ?? 0),
+      0
+    );
+    const exposureNow = openPositions.reduce(
+      (acc, p) => acc + (p.current_price ?? 0) * (p.shares ?? 0),
+      0
+    );
+    const openPnl = openPositions.reduce((acc, p) => acc + (p.pnl ?? 0), 0);
+
     return {
       dailyTone: daily >= 0 ? "good" : "bad",
       allTimeTone: allTime >= 0 ? "good" : "bad",
       deployedRatio: clamp01(deployed / 100),
+      openCount,
+      exposureCost,
+      exposureNow,
+      openPnl,
     };
-  }, [portfolio]);
+  }, [portfolio, openPositions]);
 
   return (
     <div className="space-y-6">
@@ -314,11 +380,165 @@ export default function PortfolioPage() {
         </div>
       </div>
 
+      {/* Open positions module */}
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
+        <Card className="xl:col-span-3 p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-xs font-mono text-white/50 uppercase tracking-wide">
+                Open Positions
+              </div>
+              <div className="mt-2 flex items-baseline gap-3">
+                {positionsLoading ? (
+                  <Skeleton className="h-10 w-24" />
+                ) : (
+                  <div className="text-4xl font-semibold text-white">
+                    {derived?.openCount ?? 0}
+                  </div>
+                )}
+                <div className="text-sm text-white/50">
+                  {positionsLoading ? (
+                    <Skeleton className="h-4 w-44" />
+                  ) : (
+                    <span>
+                      Exposure now: {formatUsd(derived?.exposureNow ?? 0)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {positionsError && (
+                <div className="mt-3 text-xs text-red-300 font-mono break-all">
+                  {positionsError}
+                </div>
+              )}
+
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                  <div className="text-[11px] font-mono text-white/45 uppercase">
+                    Exposure (cost)
+                  </div>
+                  <div className="mt-1 text-lg font-semibold text-white">
+                    {positionsLoading ? (
+                      <Skeleton className="h-6 w-28" />
+                    ) : (
+                      formatUsd(derived?.exposureCost ?? 0)
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                  <div className="text-[11px] font-mono text-white/45 uppercase">
+                    Exposure (mark)
+                  </div>
+                  <div className="mt-1 text-lg font-semibold text-white">
+                    {positionsLoading ? (
+                      <Skeleton className="h-6 w-28" />
+                    ) : (
+                      formatUsd(derived?.exposureNow ?? 0)
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                  <div className="text-[11px] font-mono text-white/45 uppercase">
+                    Open PnL
+                  </div>
+                  <div
+                    className={`mt-1 text-lg font-semibold ${
+                      (derived?.openPnl ?? 0) >= 0
+                        ? "text-[#00d084]"
+                        : "text-red-300"
+                    }`}
+                  >
+                    {positionsLoading ? (
+                      <Skeleton className="h-6 w-28" />
+                    ) : (
+                      formatUsd(derived?.openPnl ?? 0)
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="hidden md:flex items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/10">
+              <Layers className="w-6 h-6 text-white/60" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="xl:col-span-2 p-5">
+          <div className="text-xs font-mono text-white/50 uppercase tracking-wide">
+            Top Open Positions
+          </div>
+
+          <div className="mt-3 space-y-2">
+            {positionsLoading &&
+              Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl border border-white/10 bg-white/5 p-3"
+                >
+                  <Skeleton className="h-4 w-56" />
+                  <div className="mt-2 flex gap-2">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                </div>
+              ))}
+
+            {!positionsLoading && openPositions.length === 0 && (
+              <div className="text-sm text-white/60">
+                No open positions yet.
+              </div>
+            )}
+
+            {!positionsLoading &&
+              openPositions.slice(0, 3).map((p) => {
+                const isGood = (p.pnl ?? 0) >= 0;
+                const Arrow = isGood ? ArrowUpRight : ArrowDownRight;
+                const question =
+                  p.markets?.question ??
+                  `Market ${p.market_id?.slice(0, 8) ?? ""}…`;
+
+                return (
+                  <div
+                    key={p.id}
+                    className="rounded-xl border border-white/10 bg-white/5 p-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-sm text-white/80 truncate">
+                          {question}
+                        </div>
+                        <div className="mt-1 text-[11px] font-mono text-white/45">
+                          {p.side} • {formatUsd((p.entry_price ?? 0) * (p.shares ?? 0))} cost
+                        </div>
+                      </div>
+                      <div
+                        className={`flex items-center gap-1 text-xs font-mono ${
+                          isGood ? "text-[#00d084]" : "text-red-300"
+                        }`}
+                      >
+                        <Arrow className="w-4 h-4" />
+                        {formatUsd(p.pnl ?? 0)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </Card>
+      </div>
+
       {/* Footer / next */}
       <Card className="p-4">
-        <div className="text-xs font-mono text-white/50 uppercase tracking-wide">Next</div>
+        <div className="text-xs font-mono text-white/50 uppercase tracking-wide">
+          Next
+        </div>
         <div className="mt-2 text-sm text-white/70">
-          Next upgrade: add a small equity sparkline by storing a daily snapshot table (portfolio_history).
+          Next upgrade: add an equity sparkline by storing a portfolio snapshot
+          table (portfolio_history).
         </div>
       </Card>
     </div>
