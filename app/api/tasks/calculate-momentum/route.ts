@@ -1,10 +1,5 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin"
 
 const STOP_WORDS = new Set([
   "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
@@ -46,6 +41,7 @@ function calculateScore(
 
 export async function POST() {
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     // Fetch all queued tasks
     const { data: queuedTasks, error: queuedError } = await supabaseAdmin
       .from("tasks")

@@ -2,13 +2,14 @@
 
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
-import { Home, Users, Clock, BarChart2, ChevronLeft, ChevronRight, Layers, Terminal, CalendarClock, Menu, X, Lightbulb, Newspaper } from "lucide-react"
+import { Home, Users, Clock, BarChart2, ChevronLeft, ChevronRight, Layers, Terminal, CalendarClock, X, Lightbulb, Newspaper, Wallet } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 
 const navItems = [
   { icon: Home, label: "Dashboard", href: "/" },
+  { icon: Wallet, label: "Portfolio", href: "/portfolio" },
   { icon: Lightbulb, label: "Ideas", href: "/ideas" },
   { icon: Users, label: "Agents", href: "/agents" },
   { icon: Clock, label: "Sessions", href: "/sessions" },
@@ -22,6 +23,8 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
+
+  if (pathname === "/login") return null
 
   return (
     <>

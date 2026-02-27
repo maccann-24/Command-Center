@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
 import fs from "fs/promises"
 import path from "path"
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin"
 
 const PENDING_TASK_PATH = "/home/ubuntu/clawd/pending-task.json"
 
 export async function POST(req: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     const body = await req.json()
     const { taskId } = body as { taskId?: string }
 
