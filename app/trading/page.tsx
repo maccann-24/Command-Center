@@ -1,7 +1,7 @@
 import { getPortfolio, getPortfolioHistory } from "@/lib/supabase/trading"
 import PortfolioCard from "./components/PortfolioCard"
 import Sparkline from "./components/Sparkline"
-import BotStatus from "./components/BotStatus"
+import BotStatusCard from "./components/BotStatusCard"
 import { Card } from "@/components/ui/card"
 
 export default async function TradingPage() {
@@ -19,15 +19,15 @@ export default async function TradingPage() {
   return (
     <div className="p-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">💰 Trading Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Real-time portfolio tracking and bot status
-          </p>
-        </div>
-        <BotStatus />
+      <div>
+        <h1 className="text-3xl font-bold">💰 Trading Dashboard</h1>
+        <p className="text-muted-foreground mt-1">
+          Real-time portfolio tracking and bot status
+        </p>
       </div>
+
+      {/* Bot Status Card */}
+      <BotStatusCard />
 
       {/* Portfolio Stats - 2x2 Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
