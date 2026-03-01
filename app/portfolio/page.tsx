@@ -4,7 +4,22 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Shield, TrendingUp, Wallet, Layers, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import {
+  Activity,
+  Shield,
+  TrendingUp,
+  Wallet,
+  Layers,
+  ArrowUpRight,
+  ArrowDownRight,
+} from "lucide-react";
+import {
+  LineChart,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  YAxis,
+} from "recharts";
 
 type PortfolioRow = {
   id: number;
@@ -14,6 +29,12 @@ type PortfolioRow = {
   daily_pnl: number;
   all_time_pnl: number;
   updated_at: string | null;
+};
+
+type PortfolioHistoryRow = {
+  id: number;
+  ts: string;
+  total_value: number;
 };
 
 type PositionRow = {
@@ -66,8 +87,11 @@ export default function PortfolioPage() {
   const [portfolio, setPortfolio] = useState<PortfolioRow | null>(null);
   const [positionsLoading, setPositionsLoading] = useState(true);
   const [openPositions, setOpenPositions] = useState<PositionRow[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [history, setHistory] = useState<PortfolioHistoryRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [positionsError, setPositionsError] = useState<string | null>(null);
+  const [historyError, setHistoryError] = useState<string | null>(null);
   const [liveFlash, setLiveFlash] = useState(false);
   const liveFlashTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -115,10 +139,34 @@ export default function PortfolioPage() {
     setPositionsLoading(false);
   }, []);
 
+  const fetchHistory = useCallback(async () => {
+    setHistoryError(null);
+
+    // Last ~24h assuming ~1 snapshot per minute cycle (adjust later)
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    const { data, error: qErr } = await supabase
+      .from("portfolio_history")
+      .select("id, ts, total_value")
+      .gte("ts", since)
+      .order("ts", { ascending: true })
+      .limit(1440);
+
+    if (qErr) {
+      setHistory([]);
+      setHistoryError(qErr.message);
+    } else {
+      setHistory((data as PortfolioHistoryRow[]) ?? []);
+    }
+
+    setHistoryLoading(false);
+  }, []);
+
   useEffect(() => {
     fetchPortfolio();
     fetchOpenPositions();
-  }, [fetchPortfolio, fetchOpenPositions]);
+    fetchHistory();
+  }, [fetchPortfolio, fetchOpenPositions, fetchHistory]);
 
   useEffect(() => {
     const channel = supabase
@@ -139,13 +187,21 @@ export default function PortfolioPage() {
           fetchOpenPositions();
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "portfolio_history" },
+        () => {
+          flashLive();
+          fetchHistory();
+        }
+      )
       .subscribe();
 
     return () => {
       if (liveFlashTimeout.current) clearTimeout(liveFlashTimeout.current);
       supabase.removeChannel(channel);
     };
-  }, [fetchPortfolio, fetchOpenPositions, flashLive]);
+  }, [fetchPortfolio, fetchOpenPositions, fetchHistory, flashLive]);
 
   const derived = useMemo(() => {
     if (!portfolio) return null;
@@ -165,6 +221,11 @@ export default function PortfolioPage() {
     );
     const openPnl = openPositions.reduce((acc, p) => acc + (p.pnl ?? 0), 0);
 
+    const first = history[0]?.total_value;
+    const last = history[history.length - 1]?.total_value;
+    const dayChange =
+      typeof first === "number" && typeof last === "number" ? last - first : null;
+
     return {
       dailyTone: daily >= 0 ? "good" : "bad",
       allTimeTone: allTime >= 0 ? "good" : "bad",
@@ -173,8 +234,9 @@ export default function PortfolioPage() {
       exposureCost,
       exposureNow,
       openPnl,
+      dayChange,
     };
-  }, [portfolio, openPositions]);
+  }, [portfolio, openPositions, history]);
 
   return (
     <div className="space-y-6">
@@ -252,6 +314,45 @@ export default function PortfolioPage() {
                 )}
               </div>
 
+              {/* Sparkline */}
+              <div className="mt-4 h-16 w-full max-w-[520px]">
+                {historyLoading ? (
+                  <div className="h-full rounded-xl border border-white/10 bg-white/5" />
+                ) : history.length < 2 ? (
+                  <div className="h-full rounded-xl border border-white/10 bg-white/5 flex items-center justify-center text-[11px] text-white/40 font-mono">
+                    Waiting for portfolio_history…
+                  </div>
+                ) : (
+                  <div className="h-full rounded-xl border border-white/10 bg-white/5 px-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={history} margin={{ top: 10, right: 8, bottom: 6, left: 8 }}>
+                        <YAxis hide domain={["dataMin", "dataMax"]} />
+                        <Tooltip
+                          contentStyle={{
+                            background: "rgba(13,17,23,0.95)",
+                            border: "1px solid rgba(255,255,255,0.12)",
+                            borderRadius: 12,
+                            color: "white",
+                            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+                            fontSize: 12,
+                          }}
+                          formatter={(value: any) => [formatUsd(Number(value)), "Total Value"]}
+                          labelFormatter={() => ""}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="total_value"
+                          stroke="#00d084"
+                          strokeWidth={2}
+                          dot={false}
+                          isAnimationActive={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <div
                   className={`px-2.5 py-1 rounded-full text-xs font-mono border ${
@@ -262,6 +363,18 @@ export default function PortfolioPage() {
                 >
                   Daily: {formatUsd(portfolio?.daily_pnl ?? 0)}
                 </div>
+
+                {derived?.dayChange !== null && (
+                  <div
+                    className={`px-2.5 py-1 rounded-full text-xs font-mono border ${
+                      (derived?.dayChange ?? 0) >= 0
+                        ? "bg-[#00d08410] border-[#00d08425] text-[#00d084]"
+                        : "bg-red-500/10 border-red-500/20 text-red-300"
+                    }`}
+                  >
+                    24h: {formatUsd(derived?.dayChange ?? 0)}
+                  </div>
+                )}
                 <div
                   className={`px-2.5 py-1 rounded-full text-xs font-mono border ${
                     (portfolio?.all_time_pnl ?? 0) >= 0
