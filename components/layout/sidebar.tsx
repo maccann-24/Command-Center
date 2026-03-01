@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
-import { Home, Users, Clock, BarChart2, ChevronLeft, ChevronRight, Layers, Terminal, CalendarClock, X, Lightbulb, Newspaper, Wallet } from "lucide-react"
+import { Home, Users, Clock, BarChart2, ChevronLeft, ChevronRight, Layers, Terminal, CalendarClock, X, Lightbulb, Newspaper, Wallet, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
@@ -10,6 +10,7 @@ import { useState } from "react"
 const navItems = [
   { icon: Home, label: "Dashboard", href: "/" },
   { icon: Wallet, label: "Portfolio", href: "/portfolio" },
+  { icon: TrendingUp, label: "Trading", href: "/trading" },
   { icon: Lightbulb, label: "Ideas", href: "/ideas" },
   { icon: Users, label: "Agents", href: "/agents" },
   { icon: Clock, label: "Sessions", href: "/sessions" },
