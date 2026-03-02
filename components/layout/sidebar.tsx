@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
-import { Home, Users, Clock, BarChart2, ChevronLeft, ChevronRight, Layers, Terminal, CalendarClock, X, Lightbulb, Newspaper, Wallet, TrendingUp, ChevronDown } from "lucide-react"
+import { Home, Users, Clock, BarChart2, ChevronLeft, ChevronRight, Layers, Terminal, CalendarClock, X, Lightbulb, Newspaper, Wallet, TrendingUp, ChevronDown, MessageSquare } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
@@ -25,6 +25,7 @@ const navItems: NavItem[] = [
       { label: "Overview", href: "/trading" },
       { label: "Themes", href: "/trading/themes" },
       { label: "Agents", href: "/trading/agents" },
+      { label: "Trading Floor", href: "/trading/floor" },
       { label: "Markets", href: "/trading/markets" },
       { label: "Theses", href: "/trading/theses" },
       { label: "Positions", href: "/trading/positions" },
