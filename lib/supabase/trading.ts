@@ -104,6 +104,26 @@ export type ICMemo = {
   created_at: string
 }
 
+export type AgentMessage = {
+  id: string
+  timestamp: string
+  agent_id: string
+  theme: string
+  message_type: "thesis" | "conflict" | "consensus" | "alert" | "analyzing"
+  status: string | null
+  tags: string[] | null
+  market_question: string | null
+  market_id: string | null
+  current_odds: number | null
+  thesis_odds: number | null
+  edge: number | null
+  conviction: number | null
+  capital_allocated: number | null
+  reasoning: string | null
+  signals: Record<string, any> | null
+  related_thesis_id: string | null
+}
+
 // ============================================================
 // FILTERS
 // ============================================================
@@ -134,6 +154,14 @@ export type EventFilters = {
   severity?: "info" | "warning" | "error" | "critical"
   eventType?: string
   since?: string // ISO timestamp
+  limit?: number
+  offset?: number
+}
+
+export type AgentMessageFilters = {
+  theme?: string
+  agent?: string
+  messageType?: "thesis" | "conflict" | "consensus" | "alert" | "analyzing"
   limit?: number
   offset?: number
 }
@@ -470,6 +498,84 @@ export async function getMemoByDate(date: string): Promise<ICMemo | null> {
   } catch (err) {
     console.error("Unexpected error fetching memo by date:", err)
     return null
+  }
+}
+
+// ============================================================
+// AGENT MESSAGES (Trading Floor)
+// ============================================================
+
+/**
+ * Get agent messages with optional filters
+ */
+export async function getAgentMessages(
+  filters?: AgentMessageFilters
+): Promise<AgentMessage[]> {
+  try {
+    let query = supabase.from("agent_messages").select("*")
+
+    // Apply filters
+    if (filters?.theme) {
+      query = query.eq("theme", filters.theme)
+    }
+
+    if (filters?.agent) {
+      query = query.eq("agent_id", filters.agent)
+    }
+
+    if (filters?.messageType) {
+      query = query.eq("message_type", filters.messageType)
+    }
+
+    // Pagination
+    const limit = filters?.limit ?? 50
+    const offset = filters?.offset ?? 0
+    query = query.range(offset, offset + limit - 1)
+
+    // Default ordering (newest first)
+    query = query.order("timestamp", { ascending: false })
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error("Error fetching agent messages:", error)
+      return []
+    }
+
+    return (data as AgentMessage[]) || []
+  } catch (err) {
+    console.error("Unexpected error fetching agent messages:", err)
+    return []
+  }
+}
+
+/**
+ * Subscribe to real-time agent messages
+ * @param callback - Function to call when new message is inserted
+ * @returns Unsubscribe function
+ */
+export function subscribeToAgentMessages(
+  callback: (message: AgentMessage) => void
+): () => void {
+  const channel = supabase
+    .channel("agent_messages_channel")
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "agent_messages",
+      },
+      (payload) => {
+        // Call the callback with the new message
+        callback(payload.new as AgentMessage)
+      }
+    )
+    .subscribe()
+
+  // Return unsubscribe function
+  return () => {
+    supabase.removeChannel(channel)
   }
 }
 
