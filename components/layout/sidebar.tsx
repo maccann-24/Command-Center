@@ -23,6 +23,8 @@ const navItems: NavItem[] = [
     href: "/trading",
     subsections: [
       { label: "Overview", href: "/trading" },
+      { label: "Themes", href: "/trading/themes" },
+      { label: "Agents", href: "/trading/agents" },
       { label: "Markets", href: "/trading/markets" },
       { label: "Theses", href: "/trading/theses" },
       { label: "Positions", href: "/trading/positions" },
