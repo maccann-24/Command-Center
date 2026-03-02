@@ -106,22 +106,12 @@ export type ICMemo = {
 
 export type AgentMessage = {
   id: string
-  timestamp: string
+  created_at: string
   agent_id: string
-  theme: string
-  message_type: "thesis" | "conflict" | "consensus" | "alert" | "analyzing"
-  status: string | null
-  tags: string[] | null
-  market_question: string | null
-  market_id: string | null
-  current_odds: number | null
-  thesis_odds: number | null
-  edge: number | null
-  conviction: number | null
-  capital_allocated: number | null
-  reasoning: string | null
-  signals: Record<string, any> | null
-  related_thesis_id: string | null
+  theme: string | null
+  message_type: "thesis" | "conflict" | "consensus" | "alert" | "analyzing" | "chat"
+  content: string | null
+  metadata: Record<string, any> | null
 }
 
 // ============================================================
@@ -533,7 +523,7 @@ export async function getAgentMessages(
     query = query.range(offset, offset + limit - 1)
 
     // Default ordering (newest first)
-    query = query.order("timestamp", { ascending: false })
+    query = query.order("created_at", { ascending: false })
 
     const { data, error } = await query
 

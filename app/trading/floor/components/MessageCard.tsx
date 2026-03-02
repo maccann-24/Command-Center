@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { AgentMessage } from '@/lib/supabase/queries';
+import type { AgentMessage } from '@/lib/supabase/trading';
 import { ConvictionBadge } from './ConvictionBadge';
 
 interface MessageCardProps {

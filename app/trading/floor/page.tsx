@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { getAgentMessages, subscribeToAgentMessages } from '@/lib/supabase/queries';
-import type { AgentMessage } from '@/lib/supabase/queries';
+import { getAgentMessages, subscribeToAgentMessages } from '@/lib/supabase/trading';
+import type { AgentMessage } from '@/lib/supabase/trading';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
