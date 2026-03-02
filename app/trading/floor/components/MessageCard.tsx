@@ -57,6 +57,7 @@ export function MessageCard({ message }: MessageCardProps) {
     ? parseFloat(metadata.conviction)
     : undefined;
   const status = metadata.status as string | undefined;
+  const signals = metadata.signals as any | undefined;
   
   // Thesis-specific data
   const thesisData = message.message_type === 'thesis' ? {
@@ -169,6 +170,39 @@ export function MessageCard({ message }: MessageCardProps) {
               )}
             </Button>
           )}
+        </div>
+      )}
+
+      {/* Signals */}
+      {signals && (
+        <div className="mt-3 space-y-2">
+          <div className="text-xs font-medium text-muted-foreground">Signals:</div>
+          <div className="p-3 bg-muted/30 rounded-md border">
+            {Array.isArray(signals?.matches) ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="font-mono">{signals.source_type || 'signals'}</span>
+                  <span>
+                    {typeof signals.match_count === 'number'
+                      ? `${signals.match_count} sources`
+                      : `${signals.matches.length} sources`}
+                  </span>
+                </div>
+                <ul className="space-y-1">
+                  {signals.matches.slice(0, 6).map((m: any, idx: number) => (
+                    <li key={idx} className="text-xs">
+                      <span className="text-muted-foreground">[{m?.source || 'source'}]</span>{' '}
+                      <span className="text-foreground">{m?.headline || '—'}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <pre className="text-xs text-muted-foreground whitespace-pre-wrap break-words">
+                {JSON.stringify(signals, null, 2)}
+              </pre>
+            )}
+          </div>
         </div>
       )}
 
