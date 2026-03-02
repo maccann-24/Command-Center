@@ -55,9 +55,9 @@ WITH CHECK (true);
 `
 
 async function main() {
-  console.log('='..repeat(70))
+  console.log('='.repeat(70))
   console.log('Creating agent_messages table...')
-  console.log('='..repeat(70))
+  console.log('='.repeat(70))
   console.log()
 
   try {
@@ -71,7 +71,7 @@ async function main() {
     console.log()
     console.log(sql)
     console.log()
-    console.log('='..repeat(70))
+    console.log('='.repeat(70))
     console.log('After running SQL, test with:')
     console.log('  cd /home/ubuntu/clawd/agents/coding/polymarket')
     console.log('  source .venv/bin/activate')
