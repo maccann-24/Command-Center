@@ -47,24 +47,30 @@ export function MessageCard({ message }: MessageCardProps) {
   const themeIcon = message.theme ? themeIcons[message.theme] || '📊' : '📊';
   const borderStyle = messageTypeStyles[message.message_type as keyof typeof messageTypeStyles] || '';
 
-  // Extract structured data from metadata
+  // Extract structured data from top-level columns (agent_messages table)
   const metadata = message.metadata || {};
-  const marketQuestion = metadata.market_question as string | undefined;
-  const reasoning = metadata.reasoning as string | undefined;
-  const convictionValue = typeof metadata.conviction === 'number' 
-    ? metadata.conviction 
-    : typeof metadata.conviction === 'string'
-    ? parseFloat(metadata.conviction)
-    : undefined;
-  const status = metadata.status as string | undefined;
-  const signals = metadata.signals as any | undefined;
+  const marketQuestion = (message as any).market_question || metadata.market_question as string | undefined;
+  const reasoning = (message as any).reasoning || metadata.reasoning as string | undefined;
   
-  // Thesis-specific data
+  // conviction can be in either top-level or metadata
+  const convictionValue = (() => {
+    const topLevel = (message as any).conviction;
+    const metaLevel = metadata.conviction;
+    const val = topLevel !== undefined ? topLevel : metaLevel;
+    if (typeof val === 'number') return val;
+    if (typeof val === 'string') return parseFloat(val);
+    return undefined;
+  })();
+  
+  const status = (message as any).status || metadata.status as string | undefined;
+  const signals = (message as any).signals || metadata.signals as any | undefined;
+  
+  // Thesis-specific data from top-level columns
   const thesisData = message.message_type === 'thesis' ? {
-    current: metadata.current as string | number | undefined,
-    thesis: metadata.thesis as string | number | undefined,
-    edge: metadata.edge as string | number | undefined,
-    capital: metadata.capital as string | number | undefined,
+    current: (message as any).current_odds !== undefined ? `${((message as any).current_odds * 100).toFixed(0)}%` : undefined,
+    thesis: (message as any).thesis_odds !== undefined ? `${((message as any).thesis_odds * 100).toFixed(0)}%` : undefined,
+    edge: (message as any).edge !== undefined ? `${((message as any).edge * 100).toFixed(1)}%` : undefined,
+    capital: (message as any).capital_allocated !== undefined ? `$${(message as any).capital_allocated}` : undefined,
   } : null;
 
   const shouldShowExpandButton = reasoning && reasoning.length > 200;
