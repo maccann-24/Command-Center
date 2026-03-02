@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 interface ConvictionBadgeProps {
@@ -37,11 +36,14 @@ export function ConvictionBadge({ conviction, className }: ConvictionBadgeProps)
   const { label, colorClass } = getConvictionLevel(conviction);
 
   return (
-    <Badge
-      variant="outline"
-      className={cn('text-xs font-semibold', colorClass, className)}
+    <span
+      className={cn(
+        'inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold border',
+        colorClass,
+        className
+      )}
     >
       {label} {conviction}%
-    </Badge>
+    </span>
   );
 }

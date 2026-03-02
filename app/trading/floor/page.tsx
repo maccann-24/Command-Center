@@ -137,7 +137,7 @@ export default function TradingFloorPage() {
           <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
           <div className="absolute w-3 h-3 bg-red-500 rounded-full animate-ping" />
         </div>
-        <Badge variant="outline" className="ml-auto">
+        <Badge variant="default" className="ml-auto">
           {filteredMessages.length} messages
         </Badge>
       </div>
@@ -160,9 +160,9 @@ export default function TradingFloorPage() {
       {isScrolledDown && newMessageCount === 0 && (
         <Button
           onClick={scrollToTop}
-          size="icon"
+          size="sm"
           variant="secondary"
-          className="fixed bottom-6 right-6 z-50 shadow-lg rounded-full"
+          className="fixed bottom-6 right-6 z-50 shadow-lg rounded-full w-10 h-10 p-0"
         >
           <ArrowUp className="w-4 h-4" />
         </Button>

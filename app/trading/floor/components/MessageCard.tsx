@@ -80,7 +80,7 @@ export function MessageCard({ message }: MessageCardProps) {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-sm">{message.agent_id}</span>
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="default" className="text-xs">
                 {message.message_type}
               </Badge>
               {convictionValue !== undefined && !isNaN(convictionValue) && (
@@ -94,7 +94,7 @@ export function MessageCard({ message }: MessageCardProps) {
         </div>
         
         {status && (
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="info" className="text-xs">
             {status}
           </Badge>
         )}
@@ -175,7 +175,7 @@ export function MessageCard({ message }: MessageCardProps) {
       {/* Theme Badge */}
       {message.theme && (
         <div className="mt-3 pt-3 border-t">
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="default" className="text-xs">
             {message.theme}
           </Badge>
         </div>
