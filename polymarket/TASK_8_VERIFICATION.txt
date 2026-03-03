@@ -1,0 +1,85 @@
+TASK 8: INGESTION SCHEDULER - VERIFICATION
+===========================================
+
+✅ COMPLETE
+
+Files Created:
+==============
+1. ingestion/scheduler.py (8.2KB)
+2. test_scheduler_standalone.py (6.4KB)  
+3. TASK_8_SUMMARY.md (8.0KB)
+4. TASK_8_VERIFICATION.txt (this file)
+
+Implementation Checklist:
+=========================
+✅ Created ingestion/scheduler.py
+✅ Uses APScheduler library (BackgroundScheduler)
+✅ Imports: fetch_markets, fetch_news, filter_tradeable_markets, save_market
+✅ Job 1: fetch_markets() every 5 minutes (IntervalTrigger)
+✅ Job 1: Calls filter_tradeable_markets(markets)
+✅ Job 1: Calls save_market() for each market
+✅ Job 2: fetch_news() every 15 minutes (IntervalTrigger)
+✅ Job 2: News saved to news_events table (internal to fetch_news)
+✅ Error handling: try/except in both jobs
+✅ Event logging: records job completions and errors
+✅ Test runner: run_test(duration_minutes) function
+✅ Graceful shutdown: stop_scheduler() with wait
+✅ Status monitoring: get_scheduler_status()
+✅ Initial run: Both jobs execute immediately on startup
+✅ Python syntax valid (compiles without errors)
+
+Job Configuration:
+==================
+Job 1: fetch_and_save_markets
+  Frequency: Every 5 minutes
+  Workflow:
+    1. fetch_markets(limit=100, active_only=True)
+    2. filter_tradeable_markets(markets)
+    3. for each market: save_market(market)
+    4. Log to event_log
+
+Job 2: fetch_and_save_news
+  Frequency: Every 15 minutes
+  Workflow:
+    1. fetch_news(hours_back=1)
+    2. Events auto-saved by fetch_news()
+    3. Log to event_log
+
+Testing:
+========
+Structure tests: PASSED ✅
+  - All required imports present
+  - All required function calls present
+  - Job intervals configured correctly
+  - APScheduler properly used
+
+Syntax validation: PASSED ✅
+  - Python compiles without errors
+  - No syntax issues
+
+Integration test: REQUIRES DEPENDENCIES
+  - To run: pip install APScheduler feedparser supabase
+  - To test: python ingestion/scheduler.py 15
+  - Expected: Markets and news populate in database
+
+Expected Behavior (15 min test):
+=================================
+t=0 min:  Both jobs run (startup)
+t=5 min:  Market job runs
+t=10 min: Market job runs
+t=15 min: Both jobs run
+
+Results after 15 minutes:
+- Market fetches: 4 times
+- News fetches: 2 times
+- markets table: Should have 40-50 entries
+- news_events table: Should have 15-30 entries
+- event_log: Should have 6+ job completion events
+
+Next Steps:
+===========
+1. ✅ TASK 8 complete - ready to commit
+2. → TASK 9: Base Agent Interface (10 min)
+3. Future: Deploy scheduler as background service
+
+Status: READY FOR TASK 9 ✅

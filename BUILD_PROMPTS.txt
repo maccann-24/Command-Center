@@ -1,0 +1,182 @@
+BASED MONEY - BUILD PROMPT SCRIPT (UPDATED TASK NUMBERING)
+=========================================================
+
+This file is the canonical task list for the Based Money Product.
+
+Why this update exists
+----------------------
+The repo evolved to include a backtesting pipeline (historical data → backtest engine → metrics → validator)
+*before* the risk engine and memo generator. That inserted new tasks and caused the original BUILD_PROMPTS
+numbering to drift from the implemented TASK_*_SUMMARY/COMPLETE docs.
+
+As of 2026-02-27, this file has been updated to match the current repo’s task numbering.
+
+
+LAYER 0: FOUNDATION
+-------------------
+
+TASK 1: Database Schema
+→ Create schema.sql with tables:
+  - markets, historical_markets, news_events, trader_performance,
+    theses, portfolio, positions, ic_memos, event_log
+→ Primary keys, foreign keys, and indexes on timestamp/market_id/thesis_id
+→ Append-only constraint on event_log (CHECK timestamp = created_at)
+
+TASK 2: Core Models
+→ models/thesis.py (Thesis)
+→ models/market.py (Market)
+→ models/portfolio.py (Portfolio, Position)
+→ (Bonus accepted in repo): models/news.py (NewsEvent)
+
+TASK 3: Configuration System
+→ config.py loads .env via python-dotenv
+→ RISK_PARAMS and validation of required env vars (TRADING_MODE, SUPABASE_URL, SUPABASE_KEY)
+
+TASK 4: Database Layer
+→ database/db.py Supabase client + core persistence functions
+→ Connection test insert/fetch/delete + event logging
+
+
+LAYER 1: DATA INGESTION
+-----------------------
+
+TASK 5: Polymarket API Fetcher
+→ ingestion/polymarket.py fetch_markets() against Polymarket /markets
+→ Parse into Market objects; on API failure log and return [] (no crash)
+
+TASK 6: News Monitor (RSS Implementation)
+→ ingestion/news.py fetch_news(hours_back)
+→ Pull Reuters/AP RSS, filter by geo keywords, dedupe
+→ Save NewsEvent objects to news_events
+
+TASK 7: Market Filtering
+→ ingestion/filters.py filter_tradeable_markets(markets)
+→ Criteria: volume_24h >= 50k; liquidity_score >= 0.3 (if present); days_to_resolution >= 2; not resolved
+
+TASK 8: Ingestion Scheduler
+→ ingestion/scheduler.py using APScheduler
+→ Job 1: fetch_markets every 5 min → filter_tradeable_markets → save_market
+→ Job 2: fetch_news every 15 min → save_news_event (inside fetch_news)
+→ Run 15 min, verify markets/news_events populate; log completions/errors to event_log
+
+
+LAYER 2: INTELLIGENCE (AGENTS + THESIS PERSISTENCE)
+---------------------------------------------------
+
+TASK 9: Base Agent Interface
+→ agents/base.py BaseAgent(ABC)
+→ abstract: update_theses() -> List[Thesis], generate_thesis(market) -> Thesis
+→ property: mandate (string)
+
+TASK 10: Signal Generator
+→ agents/signals.py calculate_event_impact(market, news_events) -> float (0.0–1.0)
+→ Keyword overlap scoring: 0.20 per matching event, capped at 0.40
+
+TASK 11: Geopolitical Agent
+→ agents/geo.py GeopoliticalAgent(BaseAgent)
+→ mandate: "Russia/Ukraine, US-China, Iran, elections, geopolitical events"
+→ Use signals + recent news to generate theses with edge/conviction + position sizing
+
+TASK 12: Copy Trading Agent (Stub)
+→ agents/copy.py CopyAgent(BaseAgent)
+→ mandate: "Follow top traders with >55% win rate"
+→ Stub: update_theses() returns [] with TODO for leaderboard integration
+
+TASK 13: Thesis Store
+→ core/thesis_store.py ThesisStore
+→ save(thesis), get_actionable(min_conviction=0.70), get_by_market(market_id)
+
+
+LAYER 3: BACKTESTING (QUALITY GATES)
+------------------------------------
+
+TASK 14: Historical Data Collection
+→ backtesting/data_loader.py fetch_historical_markets(days_back=90, target_count=200, categories=...)
+→ Load resolved markets into historical_markets with resolution_value (1.0 YES / 0.0 NO)
+
+TASK 15: Backtest Engine
+→ backtesting/engine.py BacktestEngine.run_backtest(agent, start_date, end_date, initial_capital=1000)
+→ Strict temporal controls (NO LOOKAHEAD BIAS)
+→ Produce BacktestResults with trades + equity curve
+
+TASK 16: Performance Metrics Module
+→ backtesting/metrics.py calculate_metrics(backtest_results) -> PerformanceReport
+→ Metrics: total_return, win_rate, sharpe_ratio, max_drawdown, avg_edge_captured, trade_count, avg_hold_time
+
+TASK 17: Strategy Validation Gate
+→ backtesting/validator.py validate_strategy(performance_report)
+→ Thresholds: win_rate ≥52%, sharpe ≥0.5, drawdown ≤40%, trades ≥20, return ≥0%
+→ Provide actionable recommendations on failure
+
+
+LAYER 4: RISK (PRE-TRADE SAFETY)
+--------------------------------
+
+TASK 18: Risk Engine
+→ core/risk.py RiskEngine.evaluate(thesis, portfolio) -> RiskDecision
+→ Required checks (repo defaults):
+  - position size ≤ max_position_pct
+  - deployed after trade ≤ max_deployed_pct
+  - conviction ≥ min_conviction
+  - edge ≥ min_edge
+→ Include detailed risk_notes + recommended_size (Kelly-like sizing)
+
+TASK 19: Risk Engine Tests
+→ tests/test_risk.py with required 5 cases:
+  - approved
+  - rejected_position_size
+  - rejected_total_deployed
+  - rejected_low_conviction
+  - rejected_insufficient_edge
+
+
+LAYER 5: REPORTING
+------------------
+
+TASK 20: IC Memo Generator
+→ core/memo.py generate_daily_memo(date, theses, portfolio, trades) -> markdown
+→ Sections: Portfolio Summary, Active Theses, Trades Executed, Performance Metrics, Disclaimer
+→ Save memo to ic_memos table (best-effort; no crash if DB unavailable)
+
+
+LAYER 6: ORCHESTRATION & EXECUTION (NEXT)
+-----------------------------------------
+
+These tasks are next to implement in this repo (not yet completed as of this update):
+
+TASK 21: Broker Adapter Interface
+→ brokers/base.py BrokerAdapter abstract class
+→ execute_order(), get_position(), cancel_order()
+
+TASK 22: Paper Broker Implementation
+→ brokers/paper.py PaperBroker(BrokerAdapter)
+→ Simulate fills/slippage; log executions to event_log; update positions
+
+TASK 23: Execution Engine
+→ core/execution.py ExecutionEngine
+→ Enforce approved RiskDecision; save positions; update portfolio; record events
+
+TASK 24: Orchestrator Core Loop
+→ core/orchestrator.py Orchestrator
+→ run_cycle(): agents.update_theses() → thesis_store.save → risk_engine.evaluate → execution_engine.execute
+→ Resilient loop with try/except + event_log error logging
+
+TASK 25: Main Entry Point
+→ main.py to wire config + scheduler + orchestrator
+→ Ctrl+C graceful shutdown
+
+TASK 26: Integration Test
+→ Run main.py for 10 minutes in paper mode
+→ Verify: markets, news_events, theses, positions, event_log, ic_memos
+
+
+GO-LIVE INTEGRATION (FUTURE)
+----------------------------
+When paper trading is stable and profitable, continue with live broker adapter + safety checks + alerting.
+(See SYSTEM_DESIGN.md for direction.)
+
+
+STATUS CHECK (QUICK)
+--------------------
+If you want to know “where we left off”, check for TASK_*_SUMMARY/COMPLETE files and the presence of code:
+- Completed tasks in repo currently cover: 1–19 and the Task 20 memo generator implementation.

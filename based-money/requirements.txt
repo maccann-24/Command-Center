@@ -1,0 +1,11 @@
+supabase-py>=2.0.0
+python-dotenv>=1.0.0
+APScheduler>=3.10.0
+dataclasses-json>=0.6.0
+requests>=2.31.0
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pytest>=7.4.0
+tweepy>=4.14.0  # if using Twitter
+feedparser>=6.0.0  # if using RSS
+py-clob-client>=0.20.0  # for live Polymarket trading

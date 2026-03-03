@@ -1,0 +1,58 @@
+2026-03-02 22:51:30,117 [INFO] Initialized: goldman_geo (chattiness: 0.7)
+2026-03-02 22:51:30,117 [INFO] Initialized: bridgewater_geo (chattiness: 0.5)
+2026-03-02 22:51:30,117 [INFO] Initialized: twosigma_geo (chattiness: 0.6)
+2026-03-02 22:51:30,117 [INFO] Initialized: goldman_politics (chattiness: 0.8)
+2026-03-02 22:51:30,117 [INFO] Initialized: jpmorgan_politics (chattiness: 0.7)
+2026-03-02 22:51:30,117 [INFO] Initialized: renaissance_politics (chattiness: 0.6)
+2026-03-02 22:51:30,118 [INFO] Initialized: morganstanley_crypto (chattiness: 0.7)
+2026-03-02 22:51:30,118 [INFO] Initialized: renaissance_crypto (chattiness: 0.6)
+2026-03-02 22:51:30,118 [INFO] Initialized: citadel_crypto (chattiness: 0.7)
+2026-03-02 22:51:30,118 [INFO] Initialized: renaissance_weather (chattiness: 0.5)
+2026-03-02 22:51:30,118 [INFO] Initialized: morganstanley_weather (chattiness: 0.6)
+2026-03-02 22:51:30,118 [INFO] Initialized: bridgewater_weather (chattiness: 0.5)
+2026-03-02 22:51:30,118 [INFO] ============================================================
+2026-03-02 22:51:30,118 [INFO] Chat Heartbeat Daemon Started
+2026-03-02 22:51:30,118 [INFO] Initialized 12 agents
+2026-03-02 22:51:30,118 [INFO] ============================================================
+2026-03-02 22:51:30,118 [INFO] Daemon running. Press Ctrl+C to stop.
+2026-03-02 22:51:30,118 [INFO] [goldman_geo] Heartbeat starting...
+2026-03-02 22:51:30,118 [WARNING] [goldman_geo] No monitor_and_respond method - chat_mixin not loaded
+2026-03-02 22:51:30,118 [INFO] [goldman_geo] Heartbeat complete
+2026-03-02 22:51:30,118 [INFO] [bridgewater_geo] Heartbeat starting...
+2026-03-02 22:51:30,118 [WARNING] [bridgewater_geo] No monitor_and_respond method - chat_mixin not loaded
+2026-03-02 22:51:30,118 [INFO] [bridgewater_geo] Heartbeat complete
+2026-03-02 22:51:30,118 [INFO] [twosigma_geo] Heartbeat starting...
+2026-03-02 22:51:30,118 [WARNING] [twosigma_geo] No monitor_and_respond method - chat_mixin not loaded
+2026-03-02 22:51:30,118 [INFO] [twosigma_geo] Heartbeat complete
+2026-03-02 22:51:30,118 [INFO] [goldman_politics] Heartbeat starting...
+2026-03-02 22:51:30,118 [WARNING] [goldman_politics] No monitor_and_respond method - chat_mixin not loaded
+2026-03-02 22:51:30,118 [INFO] [goldman_politics] Heartbeat complete
+2026-03-02 22:51:30,118 [INFO] [jpmorgan_politics] Heartbeat starting...
+2026-03-02 22:51:30,118 [WARNING] [jpmorgan_politics] No monitor_and_respond method - chat_mixin not loaded
+2026-03-02 22:51:30,118 [INFO] [jpmorgan_politics] Heartbeat complete
+2026-03-02 22:51:30,118 [INFO] [renaissance_politics] Heartbeat starting...
+2026-03-02 22:51:30,118 [WARNING] [renaissance_politics] No monitor_and_respond method - chat_mixin not loaded
+2026-03-02 22:51:30,118 [INFO] [renaissance_politics] Heartbeat complete
+2026-03-02 22:51:30,118 [INFO] [morganstanley_crypto] Heartbeat starting...
+2026-03-02 22:51:30,118 [WARNING] [morganstanley_crypto] No monitor_and_respond method - chat_mixin not loaded
+2026-03-02 22:51:30,118 [INFO] [morganstanley_crypto] Heartbeat complete
+2026-03-02 22:51:30,118 [INFO] [renaissance_crypto] Heartbeat starting...
+2026-03-02 22:51:30,118 [WARNING] [renaissance_crypto] No monitor_and_respond method - chat_mixin not loaded
+2026-03-02 22:51:30,118 [INFO] [renaissance_crypto] Heartbeat complete
+2026-03-02 22:51:30,118 [INFO] [citadel_crypto] Heartbeat starting...
+2026-03-02 22:51:30,118 [WARNING] [citadel_crypto] No monitor_and_respond method - chat_mixin not loaded
+2026-03-02 22:51:30,118 [INFO] [citadel_crypto] Heartbeat complete
+2026-03-02 22:51:30,118 [INFO] [renaissance_weather] Heartbeat starting...
+2026-03-02 22:51:30,118 [WARNING] [renaissance_weather] No monitor_and_respond method - chat_mixin not loaded
+2026-03-02 22:51:30,118 [INFO] [renaissance_weather] Heartbeat complete
+2026-03-02 22:51:30,118 [INFO] [morganstanley_weather] Heartbeat starting...
+2026-03-02 22:51:30,118 [WARNING] [morganstanley_weather] No monitor_and_respond method - chat_mixin not loaded
+2026-03-02 22:51:30,118 [INFO] [morganstanley_weather] Heartbeat complete
+2026-03-02 22:51:30,118 [INFO] [bridgewater_weather] Heartbeat starting...
+2026-03-02 22:51:30,118 [WARNING] [bridgewater_weather] No monitor_and_respond method - chat_mixin not loaded
+2026-03-02 22:51:30,118 [INFO] [bridgewater_weather] Heartbeat complete
+2026-03-02 22:51:59,161 [INFO] Received signal 15, shutting down...
+2026-03-02 22:52:30,119 [INFO] ============================================================
+2026-03-02 22:52:30,119 [INFO] Chat Heartbeat Daemon Shutting Down
+2026-03-02 22:52:30,119 [INFO] Total heartbeats run: 12
+2026-03-02 22:52:30,119 [INFO] ============================================================

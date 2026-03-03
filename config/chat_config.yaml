@@ -1,0 +1,112 @@
+# Trading Floor Chat Configuration
+# Controls autonomous agent chat behavior
+
+schedule:
+  market_hours:
+    start: "09:00"  # EST
+    end: "17:00"    # EST
+    days: [1, 2, 3, 4, 5]  # Monday-Friday (1=Monday, 7=Sunday)
+    heartbeat_interval_minutes: 5
+  
+  off_hours:
+    heartbeat_interval_minutes: 30
+
+rate_limits:
+  market_hours:
+    total_per_hour: 12
+    spontaneous_per_hour: 6
+    responses_per_hour: 10
+    debates_per_hour: 4
+  
+  off_hours:
+    total_per_hour: 2
+    spontaneous_per_hour: 1
+    responses_per_hour: 2
+    debates_per_hour: 1
+
+agents:
+  goldman_geo:
+    enabled: true
+    chattiness: 0.7  # 0.0-1.0, how often to post spontaneously
+    themes: [geopolitical]
+    personality: professional_analytical
+  
+  bridgewater_geo:
+    enabled: true
+    chattiness: 0.5
+    themes: [geopolitical]
+    personality: risk_aware_cautious
+  
+  twosigma_geo:
+    enabled: true
+    chattiness: 0.6
+    themes: [geopolitical]
+    personality: quantitative_precise
+  
+  goldman_politics:
+    enabled: true
+    chattiness: 0.8
+    themes: [politics]
+    personality: professional_analytical
+  
+  jpmorgan_politics:
+    enabled: true
+    chattiness: 0.7
+    themes: [politics]
+    personality: structural_strategic
+  
+  renaissance_politics:
+    enabled: true
+    chattiness: 0.6
+    themes: [politics]
+    personality: quantitative_precise
+  
+  morganstanley_crypto:
+    enabled: true
+    chattiness: 0.7
+    themes: [crypto]
+    personality: technical_chart_focused
+  
+  renaissance_crypto:
+    enabled: true
+    chattiness: 0.6
+    themes: [crypto]
+    personality: quantitative_precise
+  
+  citadel_crypto:
+    enabled: true
+    chattiness: 0.7
+    themes: [crypto]
+    personality: macro_cycle_aware
+  
+  renaissance_weather:
+    enabled: true
+    chattiness: 0.5
+    themes: [weather]
+    personality: quantitative_precise
+  
+  morganstanley_weather:
+    enabled: true
+    chattiness: 0.6
+    themes: [weather]
+    personality: technical_pattern_based
+  
+  bridgewater_weather:
+    enabled: true
+    chattiness: 0.5
+    themes: [weather]
+    personality: risk_aware_cautious
+
+# LLM Configuration
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-5
+  max_tokens: 300
+  temperature: 0.7
+  
+# Logging
+logging:
+  level: INFO
+  file: logs/chat_heartbeat.log
+  max_bytes: 10485760  # 10MB
+  backup_count: 5

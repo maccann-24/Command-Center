@@ -1,0 +1,30 @@
+# BASED MONEY - Python Dependencies
+
+# Database
+supabase>=2.0.0
+
+# Configuration
+python-dotenv>=1.0.0
+
+# Scheduling
+APScheduler>=3.10.0
+
+# Data models
+dataclasses-json>=0.6.0
+
+# HTTP requests
+requests>=2.31.0
+
+# API framework
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# Testing
+pytest>=7.4.0
+
+# News sources
+tweepy>=4.14.0  # Twitter API (optional)
+feedparser>=6.0.0  # RSS feeds
+
+# Live trading (Polymarket)
+py-clob-client>=0.20.0
